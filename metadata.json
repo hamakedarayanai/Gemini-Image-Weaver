@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Image Weaver",
+  "description": "A sleek and modern web application that transforms your text prompts into a stunning gallery of four unique images, powered by Google's Gemini API.",
+  "requestFramePermissions": []
+}
