@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { ImageCard } from './ImageCard';
+import { Logo } from './Logo';
 
 // This type should match the one in App.tsx
 interface ImageState {
@@ -12,11 +13,12 @@ interface ImageState {
 interface ImageGridProps {
   images: ImageState[];
   prompt: string;
+  onImageClick: (src: string, alt: string) => void;
 }
 
-// A simple skeleton loader for image placeholders
+// A shimmer-effect skeleton loader for image placeholders
 const SkeletonLoader: React.FC = () => (
-  <div className="bg-gray-800 rounded-lg shadow-lg animate-pulse aspect-square"></div>
+  <div className="relative bg-gray-800 rounded-lg shadow-lg aspect-square overflow-hidden shimmer"></div>
 );
 
 // A component to display an error message for a failed image
@@ -34,34 +36,49 @@ const ErrorCard: React.FC<{ message?: string }> = ({ message = "Failed to load i
   );
 };
 
+const EmptyState: React.FC = () => (
+    <div className="text-center">
+      <div className="max-w-md mx-auto border-2 border-dashed border-gray-700/70 rounded-xl p-8 sm:p-12">
+        <div className="opacity-30 scale-75">
+            <Logo />
+        </div>
+        <h3 className="mt-4 text-lg font-semibold text-gray-300">Your creations will appear here</h3>
+        <p className="mt-1 text-sm text-gray-500">Enter a prompt and let's weave some magic!</p>
+      </div>
+    </div>
+  );
 
-export const ImageGrid: React.FC<ImageGridProps> = ({ images, prompt }) => {
-  // The top-level isLoading prop is removed; component now reacts to the state of individual images.
-  if (images.length === 0) {
-    return null;
-  }
-
+export const ImageGrid: React.FC<ImageGridProps> = ({ images, prompt, onImageClick }) => {
   return (
     <div className="mt-12">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {images.map((imageState, index) => {
-          switch (imageState.status) {
-            case 'loading':
-              return <SkeletonLoader key={index} />;
-            case 'loaded':
-              // Ensure src is not null before rendering ImageCard
-              return imageState.src ? (
-                <ImageCard key={index} src={imageState.src} alt={`${prompt} - result ${index + 1}`} />
-              ) : (
-                <ErrorCard key={index} message="Image data is missing." />
-              );
-            case 'error':
-              return <ErrorCard key={index} message={imageState.error} />;
-            default:
-              return null;
-          }
-        })}
-      </div>
+      {images.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {images.map((imageState, index) => {
+            const altText = `${prompt} - result ${index + 1}`;
+            switch (imageState.status) {
+              case 'loading':
+                return <SkeletonLoader key={index} />;
+              case 'loaded':
+                return imageState.src ? (
+                  <ImageCard 
+                    key={index} 
+                    src={imageState.src} 
+                    alt={altText}
+                    onClick={() => onImageClick(imageState.src!, altText)}
+                  />
+                ) : (
+                  <ErrorCard key={index} message="Image data is missing." />
+                );
+              case 'error':
+                return <ErrorCard key={index} message={imageState.error} />;
+              default:
+                return null;
+            }
+          })}
+        </div>
+      )}
     </div>
   );
 };
